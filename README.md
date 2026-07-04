@@ -9,3 +9,5 @@ The first milestone validated Hall-sensor-based six-step commutation and success
 The project is developed in C using VS Code and PlatformIO, without STM32 HAL, STM32 Motor Control SDK, or third-party motor-control libraries.
 
 ---
+<img width="2779" height="880" alt="bldc_foc_development_workflow (1)" src="https://github.com/user-attachments/assets/e86db42f-1e31-446f-82a7-27998317dbe4" />
+
