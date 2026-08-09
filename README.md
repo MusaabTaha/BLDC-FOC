@@ -1,5 +1,18 @@
 # ⚡ Bare-Metal STM32 FOC BLDC Motor Controller
 
+<p align="center">
+  <b>Bare-metal BLDC motor control on STM32F429</b><br>
+  Hall six-step startup → current sensing → Hall-based FOC → SVPWM
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/MCU-STM32F429-03234B?logo=stmicroelectronics&logoColor=white">
+  <img src="https://img.shields.io/badge/Language-C-A8B9CC?logo=c&logoColor=white">
+  <img src="https://img.shields.io/badge/Control-FOC-blue">
+  <img src="https://img.shields.io/badge/Modulation-SVPWM-orange">
+  <img src="https://img.shields.io/badge/Framework-Bare--Metal-success">
+</p>
+
 ## 🚀 Overview
 
 This project implements a from-scratch bare-metal BLDC motor control system on an STM32F429 Discovery board with the X-NUCLEO-IHM08M1 three-phase inverter board.
@@ -20,256 +33,110 @@ The second diagram shows the general V-model principle used to connect design ph
 <img width="3976" height="2776" alt="F1_-_Traditional_V_Model original" src="https://github.com/user-attachments/assets/53c95245-8e87-4edd-aa42-9425ac15a8c4" />
 
 
-<div align="center">
+This project follows the firmware-development workflow:
 
-⚙️ STM32F429 Bare-Metal BLDC Motor Control
-
-Hall Six-Step Startup → Hall-Sensored FOC → SVPWM
-
-From-scratch BLDC motor control on STM32F429 Discovery + X-NUCLEO-IHM08M1 + ACT Motor 42BLF01
-
-<br>
-
-
-
-
-
-</div>
-
-📌 Overview
-
-This project implements a from-scratch bare-metal BLDC motor control system on an STM32F429 Discovery board with the X-NUCLEO-IHM08M1 three-phase inverter board.
-
-The first milestone validated Hall-sensor-based six-step commutation and successfully spun the ACT Motor 42BLF01 using direct register-level programming.
-
-The next development phase builds the complete Field-Oriented Control (FOC) chain:
-
-Hall position
-→ electrical angle
-→ phase-current measurement
-→ Clarke transform
-→ Park transform
-→ Id/Iq current control
-→ inverse Park
-→ SVPWM
-→ TIM1 complementary PWM
-→ inverter
-→ motor
-
-The project is developed in C using VS Code and PlatformIO, without STM32 HAL, STM32 Motor Control SDK, or third-party motor-control libraries.
-
-🎯 Current objective: transition from the known-good Hall six-step startup to Hall-sensored FOC and keep the shaft rotating smoothly without rocking or losing torque.
-
-🧭 Development Workflow
-
-This project follows a professional embedded development workflow inspired by the V-model.
-
-Requirements and design are defined before implementation, and every development layer has a corresponding validation activity.
-
+```mermaid
 flowchart LR
-    A[📋 Requirements] --> B[⚙️ Technical Specifications]
-    B --> C[🔌 Hardware Design]
-    C --> D[🏗️ Firmware Architecture]
-    D --> E[🧩 Firmware Design]
-    E --> F[🔄 Program Flow]
-    F --> G[💻 Implementation]
-    G --> H[🧪 Testing & Validation]
+    A[Requirements] --> B[Technical Specifications]
+    B --> C[Hardware Design]
+    C --> D[Firmware Architecture]
+    D --> E[Firmware Design]
+    E --> F[Program Flow]
+    F --> G[Implementation]
+    G --> H[Testing & Validation]
+```
 
-The development itself is intentionally bottom-up:
+The implementation is developed bottom-up:
 
-Hardware bring-up
-→ PWM
+```text
+PWM
 → Hall sensing
 → six-step commutation
 → current sensing
 → electrical-angle estimation
-→ Clarke/Park
+→ Clarke / Park
 → current PI
 → inverse Park
 → SVPWM
 → closed-loop FOC
+```
 
 Each block is validated before the next block is trusted.
 
-🔁 Validation philosophy
-
-flowchart LR
-    A[Implement one block] --> B[Measure]
-    B --> C{Valid?}
-    C -- Yes --> D[Continue]
-    C -- No --> E[Modify only failed block]
-    E --> B
-
-This avoids changing multiple control blocks at once and makes each failure traceable.
-
-📋 1. Requirements
-
-The motor controller shall:
-
-Drive a three-phase BLDC motor using bare-metal STM32 firmware
-
-Generate complementary three-phase PWM with dead time
-
-Read the three Hall sensors for rotor-position information
-
-Measure two motor phase currents
-
-Reconstruct the third phase current
-
-Perform Clarke and Park transformations
-
-Regulate Id and Iq
-
-Perform inverse Park transformation
-
-Generate three-phase PWM using SVPWM
-
-Synchronize current sampling with PWM
-
-Start reliably using Hall-based six-step commutation
-
-Transfer from six-step control to FOC after valid Hall and speed information is available
-
-Keep the complete control path directly observable in the debugger
-
-✅ Main system requirement
-
-The motor shall transition from the known-good six-step startup to Hall-sensored FOC and continue rotating smoothly in the same direction.
-
-⚙️ 2. Technical Specifications
-
-🧠 MCU
-
-STM32F429 Discovery
-
-Item
-
-Configuration
-
-Core
-
-ARM Cortex-M4F
-
-Language
-
-C
-
-Firmware
-
-Bare-metal
-
-Register access
-
-Direct CMSIS/register programming
-
-IDE
-
-VS Code
-
-Build system
-
-PlatformIO
-
-PWM timer
-
-TIM1
-
-Hall timing
-
-TIM5
-
-Current ADC
-
-ADC1
-
-Current DMA
-
-DMA2
-
-⚡ Power Stage
-
-ST X-NUCLEO-IHM08M1
-
-Three-phase inverter
-
-Complementary high-side / low-side PWM
-
-Dead-time control
-
-3-shunt current-sensing configuration
-
-Active-low low-side inputs
-
-🌀 Motor
-
-ACT Motor 42BLF01
-
-Parameter
-
-Value
-
-Motor type
-
-NEMA17 BLDC
-
-Phases
-
-3
-
-Poles
-
-8
-
-Pole pairs
-
-4
-
-Rated voltage
-
-24 VDC
-
-Rated speed
-
-4000 rpm
-
-No-load speed
-
-5000 rpm
-
-Rated current
-
-1.9 A
-
-Peak current
-
-5.7 A
-
-Rated torque
-
-0.063 N·m
-
-Peak torque
-
-0.18 N·m
-
-Torque constant
-
-0.035 N·m/A
-
-Back-EMF constant
-
-3.7 V/krpm
-
-Phase-to-phase resistance
-
-2.0 Ω ±10%
-
-Rotor inertia
-
-24 g·cm²
-
-Motor wiring
-
+---
+
+## 1. Requirements
+
+The controller shall:
+
+- Drive a three-phase BLDC motor using bare-metal STM32 firmware
+- Generate complementary three-phase PWM with dead time
+- Read three Hall sensors for rotor-position information
+- Measure two motor phase currents and reconstruct the third
+- Perform Clarke and Park transformations
+- Regulate `Id` and `Iq`
+- Perform inverse Park transformation
+- Generate three-phase PWM using SVPWM
+- Synchronize current acquisition with PWM
+- Start reliably using Hall-based six-step commutation
+- Transfer from six-step control to FOC only after valid Hall and speed information is available
+- Keep the complete control path observable in the debugger
+
+---
+
+## 2. Technical Specifications
+
+### Controller
+
+| Item | Configuration |
+|---|---|
+| MCU | STM32F429 Discovery |
+| Core | ARM Cortex-M4F |
+| Language | C |
+| Firmware | Bare-metal |
+| Register access | Direct CMSIS / register programming |
+| IDE | VS Code |
+| Build system | PlatformIO |
+| PWM timer | TIM1 |
+| Hall timing | TIM5 |
+| Current ADC | ADC1 |
+| Current DMA | DMA2 |
+
+### Power Stage
+
+**ST X-NUCLEO-IHM08M1**
+
+- Three-phase inverter
+- Complementary high-side / low-side PWM
+- Dead-time control
+- 3-shunt current sensing
+- Active-low low-side inputs
+
+### Motor
+
+**ACT Motor 42BLF01**
+
+| Parameter | Value |
+|---|---:|
+| Motor type | NEMA17 BLDC |
+| Phases | 3 |
+| Poles | 8 |
+| Pole pairs | 4 |
+| Rated voltage | 24 VDC |
+| Rated speed | 4000 rpm |
+| No-load speed | 5000 rpm |
+| Rated current | 1.9 A |
+| Peak current | 5.7 A |
+| Rated torque | 0.063 N·m |
+| Peak torque | 0.18 N·m |
+| Torque constant | 0.035 N·m/A |
+| Back-EMF constant | 3.7 V/krpm |
+| Phase-to-phase resistance | 2.0 Ω ±10% |
+| Rotor inertia | 24 g·cm² |
+
+### Motor Wiring
+
+```text
 Phase U = Yellow
 Phase V = Green
 Phase W = Blue
@@ -279,33 +146,39 @@ Hall V  = Green
 Hall W  = Blue
 Hall +5V = Red
 Hall GND = Black
+```
 
-🔌 3. Hardware Design
+---
 
+## 3. Hardware Design
+
+```mermaid
 flowchart LR
-    MOTOR[🌀 42BLF01 BLDC]
+    M[42BLF01 BLDC]
 
-    subgraph MCU[STM32F429 Discovery]
-        PWM[TIM1<br/>Complementary PWM]
+    subgraph STM32F429
+        PWM[TIM1<br/>3-Phase Complementary PWM]
         HALL[PB0 / PB1 / PB2<br/>Hall Inputs]
         ADC[ADC1 + DMA2<br/>Current Sampling]
         TIM5[TIM5<br/>Hall Timing]
     end
 
-    subgraph POWER[X-NUCLEO-IHM08M1]
+    subgraph IHM08M1
         INV[3-Phase Inverter]
         SHUNT[3-Shunt Current Sense]
     end
 
     PWM --> INV
-    INV --> MOTOR
-    MOTOR --> HALL
+    INV --> M
+    M --> HALL
     HALL --> TIM5
-    MOTOR --> SHUNT
+    M --> SHUNT
     SHUNT --> ADC
+```
 
-PWM assignment
+### PWM Pin Assignment
 
+```text
 Phase U
 PE9  → TIM1_CH1
 PE8  → TIM1_CH1N
@@ -317,38 +190,47 @@ PE10 → TIM1_CH2N
 Phase W
 PE13 → TIM1_CH3
 PE12 → TIM1_CH3N
+```
 
-Hall inputs
+### Hall Inputs
 
+```text
 PB0 → Hall U
 PB1 → Hall V
 PB2 → Hall W
+```
 
 Observed forward Hall sequence:
 
+```text
 5 → 4 → 6 → 2 → 3 → 1 → 5
+```
 
-Current sensing
+### Current Sensing
 
+```text
 PC0 → ADC1_IN10 → Phase A current
 PC1 → ADC1_IN11 → Phase B current
+```
 
+```c
 voltA = (3.0f * (float)DMABuffer[0]) / 4095.0f;
 voltB = (3.0f * (float)DMABuffer[1]) / 4095.0f;
 
 currA = (voltA - offsetVoltA) / (0.01f * 5.18f);
 currB = (voltB - offsetVoltB) / (0.01f * 5.18f);
 currC = -(currA + currB);
+```
 
-🏗️ 4. Firmware Architecture
+---
 
-The current bring-up firmware intentionally remains in one .c file.
+## 4. Firmware Architecture
 
-This keeps register configuration, control logic, breakpoints, timing measurements, and six-step/FOC comparison in one place while the control chain is still being validated.
+The current bring-up firmware intentionally remains in **one `main.c` file** so register configuration, timing, breakpoints, six-step behavior, and FOC behavior can be inspected directly during validation.
 
+```mermaid
 flowchart TB
-
-    APP[🎛️ Motor-Control State Machine]
+    APP[Motor Control State Machine]
 
     APP --> SIX[Six-Step Startup]
     APP --> FOC[FOC Control]
@@ -356,133 +238,126 @@ flowchart TB
     SIX --> HALL[Hall Position + Speed]
     SIX --> PWM[PWM Output]
 
-    FOC --> CUR[Current Acquisition]
-    FOC --> ANG[Electrical-Angle Estimator]
+    FOC --> CURRENT[Current Acquisition]
+    FOC --> ANGLE[Electrical Angle]
 
-    CUR --> CLARKE[Clarke]
+    CURRENT --> CLARKE[Clarke]
     CLARKE --> PARK[Park]
-    ANG --> PARK
+    ANGLE --> PARK
 
     PARK --> PI[Id / Iq PI]
     PI --> IPARK[Inverse Park]
-    ANG --> IPARK
+    ANGLE --> IPARK
 
     IPARK --> SVPWM[SVPWM]
     SVPWM --> PWM
+```
 
-    ADC[ADC + DMA] --> CUR
-    HALL --> ANG
+---
 
-🧩 5. Firmware Design
+## 5. Firmware Design
 
-5.1 🔄 Six-Step Startup
+### Six-Step Startup
 
-The six-step implementation is the known-good baseline.
+The six-step implementation is the known-good startup reference.
 
-Hall
+| Hall | Commutation |
+|---:|---|
+| 4 | U+ / V- |
+| 5 | U+ / W- |
+| 1 | W+ / V- |
+| 3 | V+ / U- |
+| 2 | V+ / W- |
+| 6 | W+ / U- |
 
-Commutation
+Current development startup sequence:
 
-4
+```text
+10 s six-step
+→ validate Hall / speed
+→ transfer to FOC
+```
 
-U+ / V-
+The 10-second delay is only a debugging aid.
 
-5
+### Hall Electrical Angle
 
-U+ / W-
+Each Hall transition represents one **60° electrical sector**.
 
-1
+The Hall-derived angle already represents electrical position, so the 4 pole pairs are **not multiplied again**.
 
-W+ / V-
-
-3
-
-V+ / U-
-
-2
-
-V+ / W-
-
-6
-
-W+ / U-
-
-For the current development build:
-
-10 seconds six-step
-→ valid Hall / speed
-→ FOC takeover
-
-The 10-second period is only used to make debugging and handover observation easier.
-
-5.2 🧭 Hall Electrical Angle
-
-Each Hall transition represents one 60° electrical sector.
-
-The Hall-derived angle is already an electrical angle, therefore the 4 pole pairs are not applied again.
-
-Hall sector angle
+```text
+Hall sector base angle
 +
-time interpolation inside the 60° sector
+interpolation within the sector
 =
 continuous electrical angle
+```
 
-5.3 📐 Clarke Transform
+### Clarke Transform
 
+```c
 Ialpha = Ia;
 Ibeta  = (Ia + 2.0f * Ib) / sqrtf(3.0f);
+```
 
-Third current reconstruction:
-
+```c
 Ic = -(Ia + Ib);
+```
 
-5.4 🧭 Park Transform
+### Park Transform
 
+```c
 Id = Ialpha * cos(theta) + Ibeta * sin(theta);
 Iq = -Ialpha * sin(theta) + Ibeta * cos(theta);
+```
 
 Initial current references:
 
+```c
 Id_ref = 0.0f;
 Iq_ref = small positive test current;
+```
 
-Iq is used for torque production while Id is initially commanded to zero.
+### Current Control
 
-5.5 🎛️ d/q Current Control
+The d-axis and q-axis PI controllers generate:
 
-Two current controllers generate:
-
+```text
 Vd
 Vq
+```
 
 Target execution:
 
-PWM frequency         = 20 kHz
+```text
+PWM frequency          = 20 kHz
 Current-loop frequency = 20 kHz
-Control period Ts      = 50 µs
+Control period         = 50 µs
+```
 
-PI gains are still under validation.
+### Inverse Park
 
-5.6 🔁 Inverse Park
-
+```c
 Valpha = Vd * cos(theta) - Vq * sin(theta);
 Vbeta  = Vd * sin(theta) + Vq * cos(theta);
+```
 
-5.7 🔺 SVPWM
+### SVPWM
 
+```text
 Valpha / Vbeta
 → determine SVPWM sector
 → calculate phase on-times
 → CCR1 / CCR2 / CCR3
+```
 
-⚠️ Hall sector ≠ SVPWM sector
+> **Hall sector and SVPWM sector are different.**  
+> Hall sector represents rotor electrical position. SVPWM sector represents the commanded stator-voltage vector.
 
-Hall sector describes rotor electrical position
+### PWM-Synchronized Current Sampling
 
-SVPWM sector describes the commanded voltage vector
-
-5.8 ⏱️ PWM-Synchronized Current Sampling
-
+```mermaid
 sequenceDiagram
     participant PWM as TIM1 PWM
     participant ADC as ADC1
@@ -490,19 +365,21 @@ sequenceDiagram
     participant FOC as FOC Control
     participant CCR as TIM1 CCR1/2/3
 
-    PWM->>ADC: Trigger current sample
+    PWM->>ADC: Current sampling point
     ADC->>DMA: IA + IB
     DMA->>FOC: Conversion complete
-    FOC->>FOC: Clarke + Park
-    FOC->>FOC: Id/Iq control
-    FOC->>FOC: Inverse Park + SVPWM
+    FOC->>FOC: Clarke / Park / PI
+    FOC->>FOC: Inverse Park / SVPWM
     FOC->>CCR: Update duty cycles
+```
 
-🔄 6. Program Flow
+---
 
+## 6. Program Flow
+
+```mermaid
 flowchart TD
-
-    A[🚀 Power-Up] --> B[Peripheral Initialization]
+    A[Power-Up] --> B[Peripheral Initialization]
     B --> C[Current Offset Calibration]
     C --> D[Six-Step Commutation]
     D --> E[Read Hall Sensors]
@@ -511,10 +388,9 @@ flowchart TD
     F --> G{Startup elapsed<br/>and Hall valid?}
 
     G -- No --> D
-    G -- Yes --> H[Enable all complementary PWM pairs]
+    G -- Yes --> H[Enable All Complementary PWM Pairs]
 
     H --> I[FOC Enabled]
-
     I --> J[PWM-Synchronized ADC]
     J --> K[DMA Complete]
     K --> L[Clarke]
@@ -524,55 +400,57 @@ flowchart TD
     O --> P[SVPWM]
     P --> Q[Update CCR1 / CCR2 / CCR3]
     Q --> J
+```
 
-💻 7. Implementation
+---
 
-The current project intentionally uses a minimal structure:
+## 7. Implementation Status
 
-BLDC-FOC/
-│
-├── src/
-│   └── main.c
-│
-├── platformio.ini
-│
-└── README.md
+| Block | Status |
+|---|---|
+| GPIO / clocks | ✅ Complete |
+| TIM1 complementary PWM | ✅ Complete |
+| Dead time / polarity | ✅ Complete |
+| Hall inputs | ✅ Complete |
+| Hall sequence validation | ✅ Complete |
+| Hall six-step commutation | ✅ Stable |
+| TIM5 Hall timing | ✅ Complete |
+| Speed estimation | ✅ Complete |
+| Electrical-angle interpolation | ✅ Implemented |
+| ADC phase-current acquisition | ✅ Complete |
+| DMA | ✅ Complete |
+| Current-offset calibration | ✅ Complete |
+| Clarke transform | ✅ Complete |
+| Park transform | ✅ Complete |
+| d/q PI structure | ✅ Complete |
+| Inverse Park | ✅ Complete |
+| SVPWM | ✅ Complete |
+| PWM-synchronized sampling | ✅ Implemented |
+| Six-step → FOC transfer | 🧪 Under validation |
+| 20 kHz FOC execution | 🧪 Under validation |
+| Electrical-angle alignment | 🧪 Under validation |
+| Stable closed-loop FOC rotation | ⏳ In progress |
+| Final PI tuning | ⏳ Pending |
+| Protection / fault handling | ⏳ Pending |
 
-The goal is to validate the complete motor-control behavior first.
+---
 
-After the control chain is stable, the firmware can be separated into dedicated modules without changing the validated behavior.
+## 8. Testing and Validation
 
-Why one .c file during bring-up?
+The project follows a simple rule:
 
-Easy breakpoint placement
+```text
+Implement one block
+→ measure it
+→ validate it
+→ change only what failed
+→ retest
+```
 
-Easy register inspection
+### Block Testing
 
-Direct six-step / FOC comparison
-
-Simple timing measurements
-
-Easy rollback during debugging
-
-No unnecessary abstraction before the control algorithm works
-
-🧪 8. Testing & Validation
-
-The project follows the V-model principle by matching each development block with a verification activity.
-
-flowchart LR
-
-    R[Requirements] -.-> ST[System Test]
-    TS[Technical Specs] -.-> IT[Integration Test]
-    ARCH[Firmware Architecture] -.-> SIT[Subsystem / Integration Test]
-    DESIGN[Firmware Design] -.-> UT[Unit / Block Test]
-
-    R --> TS --> ARCH --> DESIGN --> CODE[Implementation]
-    CODE --> UT --> SIT --> IT --> ST
-
-Unit / Block Validation
-
-Hall states
+```text
+Hall sensing
 Current acquisition
 Current offset
 Clarke
@@ -580,142 +458,60 @@ Park
 PI
 Inverse Park
 SVPWM
+```
 
-Integration Validation
+### Integration Testing
 
+```text
 Hall + speed
 Hall + electrical angle
 ADC + DMA
-Current sensing + Clarke/Park
+Current sensing + Clarke / Park
 Angle + inverse Park + SVPWM
 FOC + PWM
+```
 
-System Validation
+### System Testing
 
+```text
 Six-step startup
 → FOC takeover
-→ smooth shaft rotation
+→ stable shaft rotation
 → current tracking
 → load response
+```
 
-⏱️ Performance Testing
+### Performance Testing
 
 At 20 kHz PWM:
 
+```text
 PWM period = 50 µs
+```
 
-Therefore, the complete current-control loop must finish within its available execution window.
+The complete FOC current loop must execute inside this available control period.
 
-Execution-time measurement is currently an active debugging item.
+Execution-time profiling is currently one of the main validation tasks.
 
-Rather than hiding timing problems by changing PI gains, the project treats real-time execution as a dedicated performance requirement.
+---
 
-📊 Development Status
+## 9. Hardware Setup
 
-Development Block
+<p align="center">
+  <b>Hardware setup image</b><br><br>
+  <!-- Replace with your actual image -->
+  <code>docs/images/hardware-setup.jpg</code>
+</p>
 
-Status
+```markdown
+![Hardware Setup](docs/images/hardware-setup.jpg)
+```
 
-GPIO / peripheral clocks
+---
 
-✅ Complete
+## 10. Current Debugging Plan
 
-TIM1 complementary PWM
-
-✅ Complete
-
-PWM dead time / polarity
-
-✅ Complete
-
-Hall sensor inputs
-
-✅ Complete
-
-Hall sequence validation
-
-✅ Complete
-
-Hall six-step commutation
-
-✅ Stable
-
-TIM5 Hall timing
-
-✅ Complete
-
-Speed estimation
-
-✅ Complete
-
-Electrical-angle interpolation
-
-✅ Implemented
-
-ADC phase-current acquisition
-
-✅ Complete
-
-DMA phase-current transfer
-
-✅ Complete
-
-Current offset calibration
-
-✅ Complete
-
-Clarke transform
-
-✅ Complete
-
-Park transform
-
-✅ Complete
-
-d/q PI structure
-
-✅ Complete
-
-Inverse Park
-
-✅ Complete
-
-SVPWM
-
-✅ Complete
-
-PWM-synchronized current sampling
-
-✅ Implemented
-
-Six-step → FOC transition
-
-🧪 Under validation
-
-20 kHz FOC execution timing
-
-🧪 Under validation
-
-Electrical-angle alignment
-
-🧪 Under validation
-
-Stable closed-loop FOC rotation
-
-⏳ In progress
-
-Final PI tuning
-
-⏳ Pending
-
-Protection / fault handling
-
-⏳ Pending
-
-🔬 Current Debugging Plan
-
-The working six-step implementation remains the reference baseline.
-
+```text
 1. Verify FOC execution time
 2. Verify phase-current signs
 3. Verify Hall electrical-angle direction
@@ -723,118 +519,78 @@ The working six-step implementation remains the reference baseline.
 5. Test fixed Vd = 0 / fixed Vq without PI
 6. Validate electrical-angle offset
 7. Validate Id / Iq signs
-8. Close the current loops
+8. Close current loops
 9. Tune PI gains
 10. Add final protection and limits
+```
 
-One block is modified and validated at a time.
+Only one block is modified between tests.
 
-📸 Hardware Setup
+---
 
-<!-- Replace this placeholder with the real hardware photo -->
+## 11. Project Structure
 
-<p align="center">
-  <b>📷 Add STM32F429 + X-NUCLEO-IHM08M1 + 42BLF01 hardware setup photo here</b>
-</p>
+During bring-up:
 
-![Hardware Setup](docs/images/hardware-setup.jpg)
+```text
+BLDC-FOC/
+├── src/
+│   └── main.c
+├── platformio.ini
+└── README.md
+```
 
-🗺️ Project Roadmap
+The one-file implementation is intentional during validation.
 
-✅ Hardware bring-up
-✅ Complementary PWM
-✅ Hall six-step commutation
-✅ Hall speed measurement
-✅ Current sensing + DMA
-✅ Current offset calibration
-✅ Clarke / Park
-✅ d/q PI implementation
-✅ Inverse Park
-✅ SVPWM
-🧪 Six-step → FOC handover
-🧪 FOC execution-time optimization
-🧪 Hall electrical-angle alignment
-⏳ Stable closed-loop FOC
-⏳ PI tuning
-⏳ Current / voltage protection
-⏳ Speed control loop
-⏳ Observer-based rotor-flux estimation
-⏳ Dedicated custom motor-controller PCB
+It keeps:
 
-🎯 Next Milestone
+- register configuration visible
+- breakpoint placement simple
+- six-step and FOC comparison direct
+- timing measurements traceable
+- rollback easy
 
-Transition from the known-good Hall six-step startup to Hall-sensored FOC while maintaining smooth continuous rotation.
+The firmware can be separated into dedicated modules after the complete control chain is stable.
 
-After this milestone:
+---
 
-FOC stability
-→ current-loop tuning
-→ current/voltage limits
-→ fault handling
-→ speed loop
-→ observer-based angle estimation
-→ custom PCB
+## 12. Roadmap
 
-🧰 Development Stack
+- [x] Hardware bring-up
+- [x] Complementary PWM
+- [x] Hall six-step commutation
+- [x] Hall speed measurement
+- [x] Current sensing + DMA
+- [x] Current-offset calibration
+- [x] Clarke / Park
+- [x] d/q PI implementation
+- [x] Inverse Park
+- [x] SVPWM
+- [ ] Reliable six-step → FOC handover
+- [ ] 20 kHz FOC execution optimization
+- [ ] Hall electrical-angle alignment
+- [ ] Stable closed-loop FOC
+- [ ] PI tuning
+- [ ] Current / voltage protection
+- [ ] Speed control loop
+- [ ] Observer-based rotor-flux estimation
+- [ ] Dedicated custom motor-controller PCB
 
-<div align="center">
+---
 
+## Hardware Setup Photo
 
+> **Place your real hardware image here.**
 
+---
 
-
-🧠 MCU
-
-STM32F429 Discovery
-
-⚡ Power stage
-
-X-NUCLEO-IHM08M1
-
-🌀 Motor
-
-ACT Motor 42BLF01
-
-🧲 Rotor sensing
-
-Hall sensors
-
-🎛️ Control
-
-Six-step + FOC
-
-🔺 Modulation
-
-SVPWM
-
-📏 Current sensing
-
-3-shunt / 2 ADC channels
-
-💻 Language
-
-C
-
-🔧 Framework
-
-CMSIS / direct registers
-
-🧱 Build
-
-PlatformIO
-
-🖥️ IDE
-
-VS Code
-
-</div>
-
-💡 Project Philosophy
+## Project Goal
 
 This project does not use a prebuilt motor-control library.
 
-The objective is to understand, implement, measure, and validate the complete BLDC control chain from the MCU registers to the rotating motor:
+The purpose is to implement and validate the complete motor-control chain from MCU registers to physical motor rotation:
 
+```text
 GPIO
 → timers
 → ADC / DMA
@@ -846,23 +602,13 @@ GPIO
 → SVPWM
 → inverter
 → BLDC motor
+```
 
-The project is therefore both:
+---
 
-a working BLDC motor-control platform
+<p align="center">
+  <b>STM32F429 · Bare-Metal C · BLDC · Hall Sensors · FOC · SVPWM</b>
+</p>
 
-a practical bare-metal embedded firmware development project
-
-a step-by-step FOC implementation
-
-a real-time control and debugging exercise
-
-<div align="center">
-
-⚙️ Built from registers up. Validated block by block.
-
-STM32F429 • Bare-Metal C • BLDC • Hall Sensors • FOC • SVPWM
-
-</div>
 
 The current prototype is used to validate hardware behavior, peripheral configuration, timing, safety logic, and control algorithms before migrating the design toward a dedicated custom BLDC motor-controller PCB.
