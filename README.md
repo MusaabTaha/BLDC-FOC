@@ -498,14 +498,8 @@ Execution-time profiling is currently one of the main validation tasks.
 ## 9. Hardware Setup
 
 <p align="center">
-  <b>Hardware setup image</b><br><br>
-  <!-- Replace with your actual image -->
-  <code>docs/images/hardware-setup.jpg</code>
+  <b><img width="1600" height="1200" alt="WhatsApp Image 2026-08-10 at 9 35 15 PM (1)" src="https://github.com/user-attachments/assets/7619589e-ad71-485e-ad8c-5df75bc75793" /></b><br><br>
 </p>
-
-```markdown
-![Hardware Setup](docs/images/hardware-setup.jpg)
-```
 
 ---
 
@@ -528,7 +522,56 @@ Only one block is modified between tests.
 
 ---
 
-## 11. Project Structure
+## 11. PCB Design
+
+The current prototype uses the **STM32F429 Discovery** together with the **X-NUCLEO-IHM08M1** power stage to validate the complete motor-control firmware before moving to a dedicated controller PCB.
+
+The PCB phase will integrate the validated functions into a single board:
+
+```text
+STM32 MCU
+→ 3-phase gate driver / inverter
+→ current-sense amplifiers
+→ Hall-sensor inputs
+→ DC-bus input
+→ protection circuitry
+→ programming / debug interface
+```
+
+The PCB design will only be finalized after the following blocks are validated on the prototype:
+
+- complementary PWM and dead time
+- Hall sensing and angle estimation
+- current sensing and calibration
+- Clarke / Park transforms
+- current-loop control
+- inverse Park
+- SVPWM
+- stable six-step → FOC transition
+- current / voltage limits and fault handling
+
+### PCB Design Goals
+
+```text
+Compact 3-phase motor controller
+→ short high-current paths
+→ clean current-sense routing
+→ separated power and signal grounds where required
+→ proper gate-driver decoupling
+→ accessible SWD / debug connector
+→ Hall and motor connectors
+→ DC input and protection
+```
+
+### PCB 3D View
+
+<p align="center">
+<img width="1576" height="906" alt="FOC_Controller_Rev_A_3D" src="https://github.com/user-attachments/assets/27764dde-f0bb-451e-8b0f-5e4786a9c333" />
+</p>
+
+---
+
+## 12. Project Structure
 
 The project now follows the minimal firmware structure used in the development workflow:
 
@@ -617,7 +660,7 @@ The project is kept intentionally small. Only hardware-dependent drivers and har
 
 ---
 
-## 12. Roadmap
+## 13. Roadmap
 
 - [x] Hardware bring-up
 - [x] Complementary PWM
@@ -638,12 +681,6 @@ The project is kept intentionally small. Only hardware-dependent drivers and har
 - [ ] Speed control loop
 - [ ] Observer-based rotor-flux estimation
 - [ ] Dedicated custom motor-controller PCB
-
----
-
-## Hardware Setup Photo
-
-> **Place your real hardware image here.**
 
 ---
 
