@@ -530,27 +530,90 @@ Only one block is modified between tests.
 
 ## 11. Project Structure
 
-During bring-up:
+The project now follows the minimal firmware structure used in the development workflow:
 
 ```text
 BLDC-FOC/
+├── include/
+│   ├── foc_math.h
+│   └── motor_hw.h
+│
 ├── src/
-│   └── main.c
-├── platformio.ini
-└── README.md
+│   ├── main.c
+│   ├── drivers/
+│   │   └── motor_hw.c
+│   └── systems/
+│       └── foc_math.c
+│
+├── lib/
+│   └── .gitkeep
+│
+├── test/
+│   ├── CMakeLists.txt
+│   └── test_foc_math.cpp
+│
+└── .gitignore
 ```
+include/
 
-The one-file implementation is intentional during validation.
+Contains the interfaces used by the firmware:
 
-It keeps:
+motor_hw.h
+→ MCU register definitions
+→ hardware-driver function declarations
 
-- register configuration visible
-- breakpoint placement simple
-- six-step and FOC comparison direct
-- timing measurements traceable
-- rollback easy
+foc_math.h
+→ Clarke / Park data structures
+→ FOC math function declarations
 
-The firmware can be separated into dedicated modules after the complete control chain is stable.
+src/drivers/
+
+Contains hardware-dependent STM32 code:
+
+motor_hw.c
+→ clock initialization
+→ GPIO initialization
+→ TIM1 / TIM5 configuration
+→ ADC configuration
+→ DMA configuration
+→ interrupt configuration
+
+src/systems/
+
+Contains hardware-independent motor-control calculations:
+
+foc_math.c
+→ Clarke transform
+→ Park transform
+→ inverse Park
+→ SVPWM
+
+src/main.c
+
+Contains the top-level motor-control flow:
+
+six-step startup
+→ Hall processing
+→ current acquisition integration
+→ PI current control
+→ FOC execution
+→ six-step-to-FOC transition
+→ interrupt handlers
+
+test/
+
+Contains the minimum host-side unit and integration tests:
+
+test_foc_math.cpp
+→ Clarke test
+→ Park test
+→ inverse Park test
+→ SVPWM zero-vector test
+→ Clarke → Park → inverse Park integration test
+
+CMakeLists.txt builds the tests using Catch2.
+
+The project is kept intentionally small. Only hardware-dependent drivers and hardware-independent FOC math are separated, while the top-level control flow remains in main.c for direct debugging and traceability.
 
 ---
 
